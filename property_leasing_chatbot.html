@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Management - Leasing Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            max-height: 700px;
+        }
+
+        .setup-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .setup-screen h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .setup-screen p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .setup-form {
+            width: 100%;
+        }
+
+        .setup-form input {
+            width: 100%;
+            padding: 14px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+
+        .setup-form input:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+
+        .setup-form button {
+            width: 100%;
+            padding: 14px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .setup-form button:hover {
+            background: #1a252f;
+        }
+
+        .setup-form .error {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+            display: none;
+        }
+
+        .header.active {
+            display: block;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .chat-area.active {
+            display: block;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .message.user .message-bubble {
+            background: #2c3e50;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            display: none;
+        }
+
+        .input-area.active {
+            display: flex;
+        }
+
+        .input-field {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
+
+        .send-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #1a252f;
+        }
+
+        .send-btn:active {
+            transform: scale(0.98);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .form-container {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .form-container input, .form-container select, .form-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-container textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .form-container button:hover {
+            background: #1a252f;
+        }
+
+        .error {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #388e3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-btn {
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SETUP SCREEN -->
+        <div class="setup-screen" id="setupScreen">
+            <h2>Property Leasing Portal</h2>
+            <p>Enter your Groq API key to get started</p>
+            <form class="setup-form" onsubmit="startChat(event)">
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="Paste your Groq API key here"
+                    required
+                >
+                <button type="submit">Start Chat</button>
+                <div id="setupError"></div>
+            </form>
+        </div>
+
+        <!-- CHAT SCREEN -->
+        <div class="header" id="header">
+            <h1>Leasing & Inquiries</h1>
+            <p>Find your next home • Schedule tours • Apply now</p>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message bot">
+                <div class="message-bubble">
+                    Welcome! 👋 I'm here to help you find the perfect apartment. I can answer questions about available units, pricing, amenities, pet policies, and help you schedule a tour. What would you like to know?
+                </div>
+            </div>
+            <div class="message bot">
+                <div class="message-bubble">
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="sendQuickMessage('What units are available?')">Available Units</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('What is the rent pricing?')">Pricing</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Can I schedule a tour?')">Schedule Tour</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('What is your pet policy?')">Pet Policy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area" id="inputArea">
+            <input 
+                type="text" 
+                class="input-field" 
+                id="userInput" 
+                placeholder="Ask about units, pricing, tours, policies..."
+                autocomplete="off"
+            >
+            <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let GROQ_API_KEY = null;
+
+        const chatArea = document.getElementById('chatArea');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const setupScreen = document.getElementById('setupScreen');
+        const header = document.getElementById('header');
+        const inputArea = document.getElementById('inputArea');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const setupError = document.getElementById('setupError');
+
+        // Property Management context - FULL LEASING FUNNEL
+        const leasingContext = `You are a professional leasing agent chatbot for a property management company. You help prospective tenants find apartments, learn about units, pricing, policies, schedule tours, and apply to lease.
+
+AVAILABLE UNITS & PRICING:
+- Studio: $1,200/month (available now)
+- 1 Bedroom: $1,500-$1,700/month (multiple units available)
+- 2 Bedroom: $2,000-$2,300/month (3 units available)
+- 3 Bedroom: $2,700-$3,000/month (1 unit available)
+
+LEASE TERMS:
+- Standard lease: 12 months
+- Flexible leases: 6, 9, or 24 months available
+- Move-in costs: First month + last month + $500 security deposit
+- No application fee
+
+AMENITIES:
+- Fitness center
+- Rooftop lounge
+- In-unit washer/dryer (1BR+)
+- Parking available ($50/month extra)
+- Pet-friendly
+- 24-hour concierge
+
+POLICIES:
+- Pet policy: Cats and dogs allowed, $25/month pet fee per pet (max 2)
+- Smoking: Non-smoking building
+- Guests: Guests welcome, lease terms apply
+- Quiet hours: 10pm-8am
+- Move-in: First available date negotiable
+
+TOUR SCHEDULING:
+Guide prospects to book a tour by collecting: Name, phone number, preferred times, unit type interested in. Tours available Mon-Sat, 10am-6pm.
+
+APPLICATION PROCESS:
+Provide details: Credit check required, income verification (3x rent), rental history verification. Application takes 24-48 hours.
+
+Be warm, helpful, and professional. Answer all questions about the property, units, pricing, policies, and move-in process. Encourage tours and applications.`;
+
+        function startChat(event) {
+            event.preventDefault();
+            const key = apiKeyInput.value.trim();
+            
+            if (!key) {
+                setupError.innerHTML = '<div class="error">Please enter your API key</div>';
+                return;
+            }
+
+            GROQ_API_KEY = key;
+            setupError.innerHTML = '';
+
+            // Hide setup, show chat
+            setupScreen.style.display = 'none';
+            header.classList.add('active');
+            chatArea.classList.add('active');
+            inputArea.classList.add('active');
+            userInput.focus();
+        }
+
+        function sendQuickMessage(text) {
+            userInput.value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            if (!GROQ_API_KEY) {
+                showMessage("bot", "API key not set. Please refresh and enter your key.");
+                return;
+            }
+
+            // Add user message to chat
+            showMessage("user", message);
+            userInput.value = "";
+
+            // Show typing indicator
+            const typingDiv = document.createElement("div");
+            typingDiv.className = "message bot";
+            typingDiv.innerHTML = '<div class="message-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+            chatArea.appendChild(typingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${GROQ_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: leasingContext },
+                            { role: "user", content: message }
+                        ],
+                        max_tokens: 300,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error("Invalid API key. Please refresh and try again.");
+                    }
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const botReply = data.choices[0].message.content;
+
+                // Remove typing indicator
+                typingDiv.remove();
+
+                // Check if user wants to schedule tour or apply
+                if (message.toLowerCase().includes("tour") || message.toLowerCase().includes("schedule") || message.toLowerCase().includes("visit")) {
+                    showMessage("bot", botReply);
+                    showTourForm();
+                } else if (message.toLowerCase().includes("apply") || message.toLowerCase().includes("application")) {
+                    showMessage("bot", botReply);
+                    showApplicationForm();
+                } else {
+                    showMessage("bot", botReply);
+                }
+
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (error) {
+                typingDiv.remove();
+                showMessage("bot", `Error: ${error.message}. Call us directly: (555) 123-4567.`);
+                console.error("API Error:", error);
+            }
+        }
+
+        function showMessage(sender, text) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${sender}`;
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.textContent = text;
+            messageDiv.appendChild(bubble);
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showTourForm() {
+            const formDiv = document.createElement("div");
+            formDiv.className = "message bot";
+            formDiv.innerHTML = `
+                <div class="message-bubble">
+                    <div class="form-container">
+                        <strong>Schedule a Tour</strong>
+                        <input type="text" id="tourName" placeholder="Your name" required>
+                        <input type="tel" id="tourPhone" placeholder="Phone number" required>
+                        <input type="email" id="tourEmail" placeholder="Email address" required>
+                        <select id="tourUnitType" required>
+                            <option value="">Select unit type</option>
+                            <option value="studio">Studio</option>
+                            <option value="1bed">1 Bedroom</option>
+                            <option value="2bed">2 Bedroom</option>
+                            <option value="3bed">3 Bedroom</option>
+                        </select>
+                        <select id="tourTime" required>
+                            <option value="">Preferred time</option>
+                            <option value="morning">Morning (10am-12pm)</option>
+                            <option value="afternoon">Afternoon (12pm-3pm)</option>
+                            <option value="evening">Evening (3pm-6pm)</option>
+                        </select>
+                        <input type="text" id="tourDate" placeholder="Preferred date (e.g., Friday)" required>
+                        <button onclick="submitTour()">Book Tour</button>
+                        <div id="tourStatus"></div>
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(formDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showApplicationForm() {
+            const formDiv = document.createElement("div");
+            formDiv.className = "message bot";
+            formDiv.innerHTML = `
+                <div class="message-bubble">
+                    <div class="form-container">
+                        <strong>Lease Application</strong>
+                        <input type="text" id="appName" placeholder="Full name" required>
+                        <input type="email" id="appEmail" placeholder="Email" required>
+                        <input type="tel" id="appPhone" placeholder="Phone" required>
+                        <input type="text" id="appIncome" placeholder="Monthly income" required>
+                        <select id="appUnitType" required>
+                            <option value="">Unit type</option>
+                            <option value="studio">Studio - $1,200</option>
+                            <option value="1bed">1 Bedroom - $1,500-$1,700</option>
+                            <option value="2bed">2 Bedroom - $2,000-$2,300</option>
+                            <option value="3bed">3 Bedroom - $2,700-$3,000</option>
+                        </select>
+                        <select id="appMoveIn" required>
+                            <option value="">Move-in timeline</option>
+                            <option value="asap">ASAP (2 weeks)</option>
+                            <option value="30">30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="flex">Flexible</option>
+                        </select>
+                        <textarea id="appNotes" placeholder="Any additional info (pets, employment, etc.)"></textarea>
+                        <button onclick="submitApplication()">Submit Application</button>
+                        <div id="appStatus"></div>
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(formDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        window.submitTour = function() {
+            const name = document.getElementById("tourName").value.trim();
+            const phone = document.getElementById("tourPhone").value.trim();
+            const email = document.getElementById("tourEmail").value.trim();
+            const unit = document.getElementById("tourUnitType").value;
+            const time = document.getElementById("tourTime").value;
+            const date = document.getElementById("tourDate").value.trim();
+            const statusDiv = document.getElementById("tourStatus");
+
+            if (!name || !phone || !email || !unit || !time || !date) {
+                statusDiv.innerHTML = '<div class="error">Please fill in all fields</div>';
+                return;
+            }
+
+            console.log("Tour scheduled:", { name, phone, email, unit, time, date });
+
+            statusDiv.innerHTML = '<div class="success">✓ Tour booked! We\'ll confirm via email within 2 hours.</div>';
+
+            setTimeout(() => {
+                document.getElementById("tourName").value = "";
+                document.getElementById("tourPhone").value = "";
+                document.getElementById("tourEmail").value = "";
+                document.getElementById("tourUnitType").value = "";
+                document.getElementById("tourTime").value = "";
+                document.getElementById("tourDate").value = "";
+                statusDiv.innerHTML = "";
+            }, 2000);
+
+            showMessage("bot", "Awesome! Your tour is booked. We'll send a confirmation email shortly. Looking forward to showing you around!");
+        };
+
+        window.submitApplication = function() {
+            const name = document.getElementById("appName").value.trim();
+            const email = document.getElementById("appEmail").value.trim();
+            const phone = document.getElementById("appPhone").value.trim();
+            const income = document.getElementById("appIncome").value.trim();
+            const unit = document.getElementById("appUnitType").value;
+            const moveIn = document.getElementById("appMoveIn").value;
+            const notes = document.getElementById("appNotes").value.trim();
+            const statusDiv = document.getElementById("appStatus");
+
+            if (!name || !email || !phone || !income || !unit || !moveIn) {
+                statusDiv.innerHTML = '<div class="error">Please fill in required fields</div>';
+                return;
+            }
+
+            console.log("Application submitted:", { name, email, phone, income, unit, moveIn, notes });
+
+            statusDiv.innerHTML = '<div class="success">✓ Application received! We\'ll review and contact you within 24-48 hours.</div>';
+
+            setTimeout(() => {
+                document.getElementById("appName").value = "";
+                document.getElementById("appEmail").value = "";
+                document.getElementById("appPhone").value = "";
+                document.getElementById("appIncome").value = "";
+                document.getElementById("appUnitType").value = "";
+                document.getElementById("appMoveIn").value = "";
+                document.getElementById("appNotes").value = "";
+                statusDiv.innerHTML = "";
+            }, 2000);
+
+            showMessage("bot", "Perfect! Your application has been submitted. Our team will review your information and contact you soon. Thank you!");
+        };
+
+        // Send message on Enter key
+        userInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        sendBtn.addEventListener("click", sendMessage);
+    </script>
+</body>
+</html>
